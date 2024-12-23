@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 require('dotenv').config();
 const cookieParser = require('cookie-parser');
@@ -101,6 +101,12 @@ async function run() {
         // if(decodedEmail !== email) return res.status(401).send({message: "unauthorized access"})
         const query = {'publisher.email': email}
         const result = await carCollection.find(query).toArray()
+        res.send(result)
+      })
+      app.delete('/cars/:id' , async(req,res)=>{
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id)};
+        const result = await carCollection.deleteOne(query)
         res.send(result)
       })
 
