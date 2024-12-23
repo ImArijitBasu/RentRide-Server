@@ -109,7 +109,23 @@ async function run() {
         const result = await carCollection.deleteOne(query)
         res.send(result)
       })
-
+      app.get('/car/:id' , async(req,res)=>{
+        const id = req.params.id;
+        const query = {_id :new ObjectId(id) };
+        const result = await carCollection.findOne(query);
+        res.send(result)
+      })
+      app.put('/update-car/:id' , async(req,res)=>{
+        const id = req.params.id;
+        const carData = req.body;
+        const updatedData = {
+          $set: carData,
+        }
+        const query = {_id: new ObjectId(id)};
+        const options = {upsert: true};
+        const result = await carCollection.updateOne(query,updatedData ,options);
+        res.send(result);
+      })
 
   } finally {
 
