@@ -85,6 +85,24 @@ async function run() {
         const result = await carCollection.insertOne(carData);
         res.send(result)
       })
+      app.get('/cars/recent' , async(req,res)=>{
+        const result = await carCollection.find()?.sort({postDate : -1})?.limit(8).toArray();
+        console.log(result);
+        res.send(result)
+      })
+      app.get('/cars/topPrice' , async(req,res)=>{
+        const result = await carCollection.find()?.sort({dailyRentalPrice: -1}).limit(10).toArray();
+        res.send(result)
+      })
+      app.get('/cars/:email' , async(req,res)=>{
+        const email = req.params.email;
+        // ! jwt part
+        // const decodedEmail = req.user?.email;
+        // if(decodedEmail !== email) return res.status(401).send({message: "unauthorized access"})
+        const query = {'publisher.email': email}
+        const result = await carCollection.find(query).toArray()
+        res.send(result)
+      })
 
 
   } finally {
