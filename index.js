@@ -76,10 +76,33 @@ async function run() {
           .send({ success: true });
       });
 
-      app.get("/cars" , async(req,res)=>{
-        const result = await carCollection.find().toArray();
-        res.send(result);
-      })
+      app.get("/cars", async (req, res) => {
+          const { search = "", sort = "" } = req.query;
+          let query = {};
+          if (search) {
+            const regex = new RegExp(search, "i");
+            query = {
+              $or: [
+                { carModel: regex },
+                { location: regex },
+              ],
+            };
+          }
+          let cursor = carCollection.find(query);
+          if (sort === "priceLowToHigh") {
+            cursor = cursor.sort({ dailyRentalPrice: 1 });
+          } else if (sort === "priceHighToLow") {
+            cursor = cursor.sort({ dailyRentalPrice: -1 });
+          } else if (sort === "modelAZ") {
+            cursor = cursor.sort({ carModel: 1 });
+          } else if (sort === "modelZA") {
+            cursor = cursor.sort({ carModel: -1 });
+          }
+          const result = await cursor.toArray();
+          res.send(result);
+
+      });
+      
       app.post('/add-car' , async(req,res)=>{
         const carData = req.body;
         const result = await carCollection.insertOne(carData);
