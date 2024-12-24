@@ -12,22 +12,20 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
-
+app.use(cookieParser())
 //TODO : Custom middleware
 
-const verifyToken = (req, res,next) =>{
-    const token = req.cookies?.token;
-    console.log(token);
-    if(!token){
-        return res.status(401).send({message : "Unauthorized Access"});
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token
+  if (!token) return res.status(401).send({ message: 'unauthorized access' })
+  jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: 'unauthorized access' })
     }
-    jwt.verify(token , process.env.JWT_SECRET, (err , decoded) => {
-        if(err){
-            return res.status(401).send({message : "Unauthorized Access"});
-        }
-    })
-    req.user = decoded;
-    next();
+    req.user = decoded
+  })
+
+  next()
 }
 
 
@@ -57,24 +55,30 @@ async function run() {
       const carCollection = client.db("rentRide").collection('cars');
 
 
-      app.post("/jwt" , async(req ,res)=>{
-        const user = req.body;
-        const token = jwt.sign(user , process.env.JWT_SECRET , {expiresIN: "365d"})
-        res.cookie("token" , token , {
+      app.post('/jwt', async (req, res) => {
+        const email = req.body
+        const token = jwt.sign(email, process.env.SECRET_KEY, {
+          expiresIn: '365d',
+        })
+        console.log(token)
+        res
+          .cookie('token', token, {
             httpOnly: true,
-            secure: false,
-        }).send({success: true})
-
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+          })
+          .send({ success: true })
       })
       
-    app.post("/logout", (req, res) => {
+      app.get('/logout', async (req, res) => {
         res
-          .clearCookie("token", {
-            httpOnly: true,
-            secure: false,
+          .clearCookie('token', {
+            maxAge: 0,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
           })
-          .send({ success: true });
-      });
+          .send({ success: true })
+      })
 
       app.get("/cars", async (req, res) => {
           const { search = "", sort = "" } = req.query;
@@ -110,18 +114,17 @@ async function run() {
       })
       app.get('/cars/recent' , async(req,res)=>{
         const result = await carCollection.find()?.sort({postDate : -1})?.limit(8).toArray();
-        console.log(result);
         res.send(result)
       })
       app.get('/cars/topPrice' , async(req,res)=>{
         const result = await carCollection.find()?.sort({dailyRentalPrice: -1}).limit(10).toArray();
         res.send(result)
       })
-      app.get('/cars/:email' , async(req,res)=>{
+      app.get('/cars/:email', verifyToken , async(req,res)=>{
         const email = req.params.email;
         // ! jwt part
-        // const decodedEmail = req.user?.email;
-        // if(decodedEmail !== email) return res.status(401).send({message: "unauthorized access"})
+        const decodedEmail = req.user?.email;
+        if(decodedEmail !== email) return res.status(401).send({message: "unauthorized access"})
         const query = {'publisher.email': email}
         const result = await carCollection.find(query).toArray()
         res.send(result)
