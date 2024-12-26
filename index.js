@@ -9,7 +9,11 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://rentride-assignment-11.web.app",
+      "https://rentride-assignment-11.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
