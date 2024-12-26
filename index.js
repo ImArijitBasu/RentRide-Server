@@ -98,9 +98,9 @@ async function run() {
           } else if (sort === "priceHighToLow") {
             cursor = cursor.sort({ dailyRentalPrice: -1 });
           } else if (sort === "modelAZ") {
-            cursor = cursor.sort({ carModel: 1 });
+            cursor = cursor.sort({ postDate: 1 });
           } else if (sort === "modelZA") {
-            cursor = cursor.sort({ carModel: -1 });
+            cursor = cursor.sort({ postDate: -1 });
           }
           const result = await cursor.toArray();
           res.send(result);
