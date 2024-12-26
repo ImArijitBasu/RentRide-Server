@@ -17,6 +17,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
+    "react-datepicker": "^7.5.0",
     "react-modal": "^3.16.3"
   }
 }
